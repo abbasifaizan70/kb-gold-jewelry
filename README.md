@@ -2,21 +2,49 @@
 
 A modern, secure web application for managing gold, diamond, and watch buy-back transactions. Built with React and Firebase, featuring real-time data sync, digital signatures, receipt printing, and comprehensive reporting.
 
-🌐 **Live Demo:** https://kb-gold-jewelry-f05f0.web.app
+🌐 **Live App:** https://kb-gold-jewelry-f05f0.web.app
+
+📊 **Project Console:** https://console.firebase.google.com/project/kb-gold-jewelry-f05f0/overview
+
+---
+
+## ⚡ Quick Start (TL;DR)
+
+```bash
+# 1. Clone and install
+git clone <repository-url>
+cd goldbuyback
+npm install
+
+# 2. Configure Firebase (edit src/firebaseConfig.js with your credentials)
+
+# 3. Run locally
+npm start
+
+# 4. Deploy to Firebase
+npm run build
+firebase deploy
+```
+
+**Default Login:** PIN: `9812` | Master Code: `159753`
+
+[Full setup instructions below ⬇️](#firebase-setup)
 
 ---
 
 ## 📋 Table of Contents
 
+- [Quick Start](#quick-start-tldr)
 - [Features](#features)
 - [Technology Stack](#technology-stack)
-- [Quick Start](#quick-start)
+- [Installation](#installation)
 - [Firebase Setup](#firebase-setup)
 - [Deployment](#deployment)
 - [Security](#security)
 - [Usage Guide](#usage-guide)
 - [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
+- [Recent Updates](#recent-updates-november-13-2025)
 - [License](#license)
 
 ---
@@ -40,8 +68,9 @@ A modern, secure web application for managing gold, diamond, and watch buy-back 
 - 🛡️ **Firestore Security Rules** - Server-side data access control
 
 ### Additional Features
-- ⚙️ **System Status Dashboard** - Real-time Firebase connection monitoring
-- 📋 **Configurable Settings** - Store information and legal terms customization
+- 🏪 **Multi-Store Support** - Manage multiple store locations with addresses
+- ⚙️ **Configurable Settings** - Store information and legal terms customization
+- 🔑 **Security Settings** - Change PIN and Master Code from Settings panel
 - 💾 **Cloud Sync** - Automatic data backup to Firebase Firestore
 - 🌙 **Dark Mode UI** - Modern slate/amber color scheme
 - ⚡ **PWA Ready** - Installable as a native app on Android/iOS
@@ -68,14 +97,14 @@ A modern, secure web application for managing gold, diamond, and watch buy-back 
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation
 
 ### Prerequisites
 - Node.js 14+ and npm
 - Firebase account (free tier)
 - Modern web browser
 
-### Installation
+### Step-by-Step Installation
 
 1. **Clone the repository**
 ```bash
@@ -218,21 +247,32 @@ For complete deployment guide, see: `DEPLOYMENT_GUIDE.md`
 ## 🔐 Security
 
 ### PIN Protection
-- Default PIN: `9812` (change in code if needed)
+- Default PIN: `9812` (changeable in Settings → Security)
 - 5 failed attempts trigger system lockout
-- Master reset code: `159753` (change in code)
+- Master reset code: `159753` (changeable in Settings → Security)
+- PIN must be 4+ digits, Master Code must be 6+ digits
+
+### Changing Security PINs
+1. Go to **Settings** → **Security PINs** tab
+2. Enter Master Code to unlock security settings
+3. Update PIN and/or Master Code
+4. Click **"UPDATE SECURITY PINs"**
+5. New codes take effect immediately
 
 ### Data Security
 - All data encrypted in transit (HTTPS)
 - Firestore security rules prevent unauthorized access
 - Anonymous authentication ensures user privacy
 - No personal user data collected
+- Cloud Firestore database with real-time sync
 
 ### Best Practices
-- Change default PIN and master code in production
+- **Change default PINs immediately** using Security Settings
 - Review Firestore security rules regularly
+- Keep Master Code secure and separate from PIN
 - Enable App Check for production (optional)
 - Monitor Firebase usage in console
+- Backup important data regularly
 
 ---
 
@@ -267,20 +307,29 @@ For complete deployment guide, see: `DEPLOYMENT_GUIDE.md`
 
 ### Generating Reports
 1. Click **"Reports"**
-2. Select month and year
+2. Select date range or use presets (Monthly/Yearly/All Time)
 3. Click **"PRINT / SAVE PDF"**
 4. Use browser's print dialog to save as PDF
 
-### Checking System Status
-1. Click **Settings** (gear icon)
-2. View "System Status" section:
-   - ✅ Firebase Authentication
-   - ✅ Firestore Database
-   - ✅ Data Loaded
+### Managing Store Locations
+1. Go to **Settings** → **General Info** tab
+2. View existing store locations
+3. Edit store names and addresses
+4. Click **"Add New Store"** to add more locations
+5. Remove stores using trash icon
+6. Click **"SAVE CHANGES"**
+
+### Changing Security Settings
+1. Go to **Settings** → **Security PINs** tab
+2. Enter current Master Code (`159753` by default)
+3. Click **"UNLOCK SECURITY SETTINGS"**
+4. Update PIN (4+ digits) and/or Master Code (6+ digits)
+5. Click **"UPDATE SECURITY PINs"**
 
 ### Locking the System
 - Click the lock icon in header
 - System returns to PIN entry screen
+- All data is automatically saved to cloud
 
 ---
 
@@ -312,16 +361,37 @@ goldbuyback/
 
 ### Common Issues
 
-#### "Firebase configured correctly" Error
-**Solution:** Complete Firebase setup (Authentication + Firestore + Rules)
-- See: `PHONE_ERROR_FIX.md`
+#### "Invalid document reference" Error
+**Cause:** Firestore paths must have even/odd segment counts correctly
+**Solution:** App now uses correct path structure: `apps/{appId}/...`
+- Settings: `apps/default-app-id/data/settings` (4 segments - document)
+- Purchases: `apps/default-app-id/purchases` (3 segments - collection)
 
 #### "Permission Denied" Error
-**Solution:** Publish Firestore security rules
+**Solution:** Deploy Firestore security rules
+```bash
+firebase deploy --only firestore:rules
+```
+- Ensure Anonymous Authentication is enabled in Firebase Console
+- Check that Firestore database is created
 - See: `FIRESTORE_RULES_FIX.md`
 
+#### "toFixed is not a function" Error
+**Cause:** Numeric values stored as strings
+**Solution:** Fixed - app now uses `parseFloat()` for all calculations
+
+#### Firebase Not Connected
+**Solution:** 
+- Check `src/firebaseConfig.js` has correct credentials
+- Verify Firebase project is active
+- Enable Anonymous Authentication
+- Create Firestore database
+- Deploy security rules
+
 #### Search Not Working
-**Solution:** Ensure data is loaded (check System Status in Settings)
+**Solution:** Ensure data is loaded and Firebase is connected
+- Check browser console for errors
+- Verify internet connection
 
 #### App Not Loading on Phone
 **Solution:** 
@@ -329,9 +399,13 @@ goldbuyback/
 - Hard refresh (pull down on mobile Chrome)
 - Check internet connection
 - Verify Firebase services are enabled
+- Try incognito/private mode
 
 #### Can't Login After Deployment
-**Solution:** Check that Anonymous Authentication is enabled in Firebase Console
+**Solution:** 
+- Check that Anonymous Authentication is enabled in Firebase Console
+- Verify Firestore security rules are deployed
+- Clear browser cache and retry
 
 ### Debug Tools
 
@@ -392,15 +466,25 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🎯 Roadmap
 
-Potential future features:
-- [ ] Multi-language support
+### ✅ Completed Features
+- [x] Multi-store support with location selection
+- [x] Security PIN management in Settings
+- [x] Date range reports with presets
+- [x] Real-time analytics dashboard
+- [x] Digital signature capture
+- [x] Mobile-responsive design
+
+### 🔮 Potential Future Features
+- [ ] Multi-language support (Spanish/English toggle)
 - [ ] Email receipt delivery
 - [ ] Barcode/QR code scanning
 - [ ] Advanced analytics with charts
-- [ ] Export to Excel
+- [ ] Export to Excel/CSV
 - [ ] SMS notifications
-- [ ] Multi-store support
-- [ ] Role-based access control
+- [ ] Role-based access control (multi-user)
+- [ ] Customer database with history
+- [ ] Automated backup scheduling
+- [ ] Dark/Light theme toggle
 
 ---
 
@@ -413,6 +497,41 @@ Potential future features:
 
 ---
 
+## 📝 Recent Updates (November 13, 2025)
+
+### Latest Changes
+- ✅ Fixed Firebase configuration imports
+- ✅ Corrected Firestore path structure (apps/{appId}/...)
+- ✅ Fixed analytics calculations with parseFloat()
+- ✅ Deployed security rules to Firebase
+- ✅ Updated all database references
+- ✅ Improved error handling and validation
+- ✅ Enhanced multi-store location support
+
+### Database Structure
+```
+Firestore Database:
+  └── apps/
+      └── default-app-id/
+          ├── data/
+          │   └── settings (document)
+          │       ├── storeName
+          │       ├── phone
+          │       ├── terms
+          │       ├── stores[]
+          │       ├── pin
+          │       └── masterCode
+          └── purchases/ (collection)
+              └── [transaction-id] (documents)
+                  ├── customerName
+                  ├── itemType
+                  ├── price
+                  ├── date
+                  └── ...
+```
+
+---
+
 **Made with ❤️ for KB Gold Jewelry**
 
-Last Updated: November 2025
+Version: 1.0.0 | Last Updated: November 13, 2025
